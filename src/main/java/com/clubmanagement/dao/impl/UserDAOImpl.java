@@ -31,7 +31,7 @@ public class UserDAOImpl implements IUserDAO {
                     user.setId(1);
                     user.setUsername("admin");
                     user.setPassword(SecurityUtil.md5("123456"));
-                    user.setRole("admin");
+                    user.setRole("ADMIN");
                     user.setRealName("管理员");
                     user.setClassName("计算机科学");
                     user.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
@@ -40,7 +40,7 @@ public class UserDAOImpl implements IUserDAO {
                     user.setId(2);
                     user.setUsername("student");
                     user.setPassword(SecurityUtil.md5("123456"));
-                    user.setRole("student");
+                    user.setRole("STUDENT");
                     user.setRealName("张三");
                     user.setClassName("计算机科学2023");
                     user.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
@@ -117,6 +117,31 @@ public class UserDAOImpl implements IUserDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：返回模拟用户
+                System.out.println("演示模式: 模拟获取用户ID - " + id);
+                if (id == 1) {
+                    user = new User();
+                    user.setId(1);
+                    user.setUsername("admin");
+                    user.setPassword(SecurityUtil.md5("123456"));
+                    user.setRole("ADMIN");
+                    user.setRealName("管理员");
+                    user.setClassName("计算机科学");
+                    user.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                } else if (id == 2) {
+                    user = new User();
+                    user.setId(2);
+                    user.setUsername("student");
+                    user.setPassword(SecurityUtil.md5("123456"));
+                    user.setRole("STUDENT");
+                    user.setRealName("张三");
+                    user.setClassName("计算机科学2023");
+                    user.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                }
+                return user;
+            }
+            
             String sql = "SELECT id, username, password, role, real_name, class_name, created_at " +
                         "FROM users WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
@@ -151,6 +176,31 @@ public class UserDAOImpl implements IUserDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：返回模拟用户
+                System.out.println("演示模式: 模拟获取用户名 - " + username);
+                if ("admin".equals(username)) {
+                    user = new User();
+                    user.setId(1);
+                    user.setUsername("admin");
+                    user.setPassword(SecurityUtil.md5("123456"));
+                    user.setRole("ADMIN");
+                    user.setRealName("管理员");
+                    user.setClassName("计算机科学");
+                    user.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                } else if ("student".equals(username)) {
+                    user = new User();
+                    user.setId(2);
+                    user.setUsername("student");
+                    user.setPassword(SecurityUtil.md5("123456"));
+                    user.setRole("STUDENT");
+                    user.setRealName("张三");
+                    user.setClassName("计算机科学2023");
+                    user.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                }
+                return user;
+            }
+            
             String sql = "SELECT id, username, password, role, real_name, class_name, created_at " +
                         "FROM users WHERE username = ?";
             pstmt = conn.prepareStatement(sql);

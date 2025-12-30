@@ -82,6 +82,15 @@ public class Club {
         this.creatorId = creatorId;
     }
     
+    // 兼容性方法：getPresidentId 等同于 getCreatorId
+    public int getPresidentId() {
+        return creatorId;
+    }
+    
+    public void setPresidentId(int presidentId) {
+        this.creatorId = presidentId;
+    }
+    
     public int getMemberCount() {
         return memberCount;
     }

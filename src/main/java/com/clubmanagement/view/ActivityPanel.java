@@ -1,12 +1,16 @@
 package com.clubmanagement.view;
 
 import com.clubmanagement.model.User;
+import com.clubmanagement.model.Activity;
+import com.clubmanagement.service.IActivityService;
+import com.clubmanagement.service.impl.ActivityServiceImpl;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 /**
  * 活动大厅面板
@@ -14,11 +18,13 @@ import java.awt.event.ActionListener;
  */
 public class ActivityPanel extends JPanel {
     private User currentUser;
+    private IActivityService activityService;
     private JTable activityTable;
     private DefaultTableModel tableModel;
     
     public ActivityPanel(User user) {
         this.currentUser = user;
+        this.activityService = new ActivityServiceImpl();
         initComponents();
         setupLayout();
         loadActivityData();
@@ -68,7 +74,7 @@ public class ActivityPanel extends JPanel {
             toolbarPanel.add(signupButton);
         }
         
-        // 如果是管理员，显示创建活动按钮
+        // 如果是管理员，显示管理功能按钮
         if ("ADMIN".equals(currentUser.getRole())) {
             toolbarPanel.add(Box.createHorizontalStrut(20));
             JButton createButton = new JButton("创建活动");
@@ -79,6 +85,26 @@ public class ActivityPanel extends JPanel {
                 }
             });
             toolbarPanel.add(createButton);
+            
+            toolbarPanel.add(Box.createHorizontalStrut(10));
+            JButton viewButton = new JButton("查看详情");
+            viewButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    viewActivityDetails();
+                }
+            });
+            toolbarPanel.add(viewButton);
+            
+            toolbarPanel.add(Box.createHorizontalStrut(10));
+            JButton deleteButton = new JButton("删除活动");
+            deleteButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    deleteSelectedActivity();
+                }
+            });
+            toolbarPanel.add(deleteButton);
         }
         
         add(toolbarPanel, BorderLayout.NORTH);
@@ -127,26 +153,25 @@ public class ActivityPanel extends JPanel {
         
         try {
             // 获取所有活动
-            // 注意：这里需要ActivityService和Activity实体类
-            // 由于Activity相关类还未完全实现，这里使用模拟数据
+            List<Activity> activities = activityService.getAllActivities();
             
-            // TODO: 实际项目中需要实现ActivityService
-            // List<Activity> activities = activityService.getAllActivities();
-            
-            // 模拟数据
-            Object[][] mockData = {
-                {1, "Java编程入门讲座", "计算机协会", "2024-06-15 14:00", "教学楼A101", "已发布", "2024-06-10 09:00"},
-                {2, "Python数据分析实战", "计算机协会", "2024-06-20 15:30", "实验楼B201", "已发布", "2024-06-12 10:30"},
-                {3, "校园篮球友谊赛", "篮球社", "2024-06-18 16:00", "体育馆篮球场", "已发布", "2024-06-11 14:20"}
-            };
-            
-            for (Object[] rowData : mockData) {
+            // 填充表格
+            for (Activity activity : activities) {
+                Object[] rowData = {
+                    activity.getId(),
+                    activity.getTitle(),
+                    activity.getClubName() != null ? activity.getClubName() : "社团" + activity.getClubId(),
+                    activity.getStartTime(),
+                    activity.getLocation(),
+                    activity.getStatus(),
+                    activity.getCreatedAt()
+                };
                 tableModel.addRow(rowData);
             }
             
             // 更新状态
             JOptionPane.showMessageDialog(this, 
-                "加载完成，共 " + mockData.length + " 个活动", 
+                "加载完成，共 " + activities.size() + " 个活动", 
                 "提示", 
                 JOptionPane.INFORMATION_MESSAGE);
                 
@@ -181,26 +206,28 @@ public class ActivityPanel extends JPanel {
             JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            // 这里应该调用Service层处理报名逻辑
-            // 由于数据库设计中包含了signups表，但相关Service/DAO还未实现
-            // 这里先显示提示信息
-            
-            // 模拟报名成功
-            boolean success = true; // 模拟成功
-            
-            if (success) {
-                JOptionPane.showMessageDialog(this, 
-                    "报名活动 \"" + activityName + "\" 成功！", 
-                    "报名成功", 
-                    JOptionPane.INFORMATION_MESSAGE);
+            try {
+                // 调用Service层处理报名逻辑
+                boolean success = activityService.registerActivity(activityId, currentUser.getId());
                 
-                // TODO: 实际项目中需要实现报名逻辑
-                // activityService.signupForActivity(currentUser.getId(), activityId);
-            } else {
+                if (success) {
+                    JOptionPane.showMessageDialog(this, 
+                        "报名活动 \"" + activityName + "\" 成功！", 
+                        "报名成功", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    loadActivityData(); // 刷新数据
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "报名失败，请稍后重试", 
+                        "报名失败", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, 
-                    "报名失败，请稍后重试", 
+                    "报名失败: " + e.getMessage(), 
                     "报名失败", 
                     JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
             }
         }
     }
@@ -209,7 +236,7 @@ public class ActivityPanel extends JPanel {
      * 显示创建活动对话框（管理员功能）
      */
     private void showCreateActivityDialog() {
-        JDialog createDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "创建活动", true);
+        JDialog createDialog = new JDialog((Window) SwingUtilities.getWindowAncestor(this), "创建活动", Dialog.ModalityType.APPLICATION_MODAL);
         createDialog.setSize(500, 400);
         createDialog.setLocationRelativeTo(this);
         createDialog.setLayout(new BorderLayout(10, 10));
@@ -298,21 +325,41 @@ public class ActivityPanel extends JPanel {
                 
                 try {
                     int clubId = Integer.parseInt(clubIdStr);
-                    int maxParticipants = maxParticipantsStr.isEmpty() ? 0 : Integer.parseInt(maxParticipantsStr);
+                    int maxParticipants = maxParticipantsStr.isEmpty() ? 50 : Integer.parseInt(maxParticipantsStr);
                     
-                    // 这里应该创建Activity对象并调用Service层
-                    // 由于Activity相关类还未完全实现，这里先显示提示
+                    // 创建Activity对象
+                    Activity newActivity = new Activity();
+                    newActivity.setTitle(title);
+                    newActivity.setDescription(description);
+                    newActivity.setClubId(clubId);
+                    // 解析时间字符串，这里简化处理，实际应该使用日期选择器
+                    java.util.Date startTime = new java.util.Date(System.currentTimeMillis() + 86400000); // 明天
+                    java.util.Date endTime = new java.util.Date(System.currentTimeMillis() + 90000000); // 明天+1小时
+                    newActivity.setStartTime(startTime);
+                    newActivity.setEndTime(endTime);
+                    newActivity.setLocation(location);
+                    newActivity.setMaxParticipants(maxParticipants);
+                    newActivity.setCurrentParticipants(0);
+                    newActivity.setStatus("已发布");
+                    newActivity.setCreatedAt(new java.util.Date());
+                    newActivity.setUpdatedAt(new java.util.Date());
                     
-                    JOptionPane.showMessageDialog(createDialog, 
-                        "活动创建功能需要Activity实体类和Service层的完整实现", 
-                        "功能待实现", 
-                        JOptionPane.INFORMATION_MESSAGE);
+                    // 调用Service层创建活动
+                    boolean success = activityService.createActivity(newActivity, currentUser.getId());
                     
-                    // TODO: 实际项目中需要实现活动创建逻辑
-                    // Activity newActivity = new Activity(clubId, title, description, time, location, maxParticipants, "PENDING");
-                    // boolean success = activityService.createActivity(newActivity);
-                    
-                    createDialog.dispose();
+                    if (success) {
+                        JOptionPane.showMessageDialog(createDialog, 
+                            "活动创建成功！", 
+                            "成功", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                        createDialog.dispose();
+                        loadActivityData(); // 刷新数据
+                    } else {
+                        JOptionPane.showMessageDialog(createDialog, 
+                            "活动创建失败", 
+                            "错误", 
+                            JOptionPane.ERROR_MESSAGE);
+                    }
                     
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(createDialog, 
@@ -341,6 +388,140 @@ public class ActivityPanel extends JPanel {
     }
     
     /**
+     * 查看选中的活动详情（管理员功能）
+     */
+    private void viewActivityDetails() {
+        int selectedRow = activityTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "请先选择一个活动", 
+                "提示", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int activityId = (int) tableModel.getValueAt(selectedRow, 0);
+        String activityName = (String) tableModel.getValueAt(selectedRow, 1);
+        String clubName = (String) tableModel.getValueAt(selectedRow, 2);
+        String time = tableModel.getValueAt(selectedRow, 3).toString();
+        String location = (String) tableModel.getValueAt(selectedRow, 4);
+        String status = (String) tableModel.getValueAt(selectedRow, 5);
+        String createdAt = tableModel.getValueAt(selectedRow, 6).toString();
+        
+        // 显示活动详情对话框
+        JDialog detailsDialog = new JDialog((Window) SwingUtilities.getWindowAncestor(this), "活动详情", Dialog.ModalityType.APPLICATION_MODAL);
+        detailsDialog.setSize(400, 350);
+        detailsDialog.setLocationRelativeTo(this);
+        detailsDialog.setLayout(new BorderLayout(10, 10));
+        
+        JPanel detailsPanel = new JPanel(new GridBagLayout());
+        detailsPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        gbc.gridx = 0; gbc.gridy = 0;
+        detailsPanel.add(new JLabel("活动ID:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 0;
+        detailsPanel.add(new JLabel(String.valueOf(activityId)), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 1;
+        detailsPanel.add(new JLabel("活动名称:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 1;
+        detailsPanel.add(new JLabel(activityName), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 2;
+        detailsPanel.add(new JLabel("所属社团:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 2;
+        detailsPanel.add(new JLabel(clubName), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 3;
+        detailsPanel.add(new JLabel("活动时间:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 3;
+        detailsPanel.add(new JLabel(time), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 4;
+        detailsPanel.add(new JLabel("活动地点:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 4;
+        detailsPanel.add(new JLabel(location), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 5;
+        detailsPanel.add(new JLabel("活动状态:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 5;
+        detailsPanel.add(new JLabel(status), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 6;
+        detailsPanel.add(new JLabel("创建时间:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 6;
+        detailsPanel.add(new JLabel(createdAt), gbc);
+        
+        detailsDialog.add(detailsPanel, BorderLayout.CENTER);
+        
+        JButton closeButton = new JButton("关闭");
+        closeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                detailsDialog.dispose();
+            }
+        });
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(closeButton);
+        detailsDialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        detailsDialog.setVisible(true);
+    }
+    
+    /**
+     * 删除选中的活动（管理员功能）
+     */
+    private void deleteSelectedActivity() {
+        int selectedRow = activityTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "请先选择一个活动", 
+                "提示", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int activityId = (int) tableModel.getValueAt(selectedRow, 0);
+        String activityName = (String) tableModel.getValueAt(selectedRow, 1);
+        
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "确定要删除活动 \"" + activityName + "\" 吗？\n此操作不可恢复！",
+            "确认删除",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                boolean success = activityService.deleteActivity(activityId, currentUser.getId());
+                
+                if (success) {
+                    JOptionPane.showMessageDialog(this, 
+                        "活动 \"" + activityName + "\" 删除成功！", 
+                        "删除成功", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    loadActivityData(); // 刷新列表
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "活动删除失败", 
+                        "错误", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, 
+                    "删除过程中出现错误: " + e.getMessage(), 
+                    "错误", 
+                    JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
      * 获取选中的活动ID
      * @return 选中的活动ID，如果没有选中返回-1
      */
@@ -351,12 +532,4 @@ public class ActivityPanel extends JPanel {
         }
         return (int) tableModel.getValueAt(selectedRow, 0);
     }
-}
-
-/**
- * 活动服务类（临时占位）
- * 实际项目中需要完整实现
- */
-class ActivityService {
-    // 这里只是占位，实际需要完整实现
 }

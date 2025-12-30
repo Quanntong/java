@@ -60,7 +60,7 @@ public class ClubListPanel extends JPanel {
         });
         toolbarPanel.add(refreshButton);
         
-        // 如果是管理员，显示创建社团按钮
+        // 如果是管理员，显示管理功能按钮
         if ("ADMIN".equals(currentUser.getRole())) {
             toolbarPanel.add(Box.createHorizontalStrut(20));
             JButton createButton = new JButton("创建社团");
@@ -71,6 +71,36 @@ public class ClubListPanel extends JPanel {
                 }
             });
             toolbarPanel.add(createButton);
+            
+            toolbarPanel.add(Box.createHorizontalStrut(10));
+            JButton viewButton = new JButton("查看详情");
+            viewButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    viewClubDetails();
+                }
+            });
+            toolbarPanel.add(viewButton);
+            
+            toolbarPanel.add(Box.createHorizontalStrut(10));
+            JButton deleteButton = new JButton("删除社团");
+            deleteButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    deleteSelectedClub();
+                }
+            });
+            toolbarPanel.add(deleteButton);
+            
+            toolbarPanel.add(Box.createHorizontalStrut(10));
+            JButton manageActivitiesButton = new JButton("管理活动");
+            manageActivitiesButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    manageClubActivities();
+                }
+            });
+            toolbarPanel.add(manageActivitiesButton);
         }
         
         // 如果是学生，显示申请加入按钮
@@ -299,6 +329,173 @@ public class ClubListPanel extends JPanel {
             // TODO: 实际项目中需要实现加入社团的业务逻辑
             // clubService.joinClub(currentUser.getId(), clubId);
         }
+    }
+    
+    /**
+     * 查看选中的社团详情（管理员功能）
+     */
+    private void viewClubDetails() {
+        int selectedRow = clubTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "请先选择一个社团", 
+                "提示", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int clubId = (int) tableModel.getValueAt(selectedRow, 0);
+        String clubName = (String) tableModel.getValueAt(selectedRow, 1);
+        String description = (String) tableModel.getValueAt(selectedRow, 2);
+        int presidentId = (int) tableModel.getValueAt(selectedRow, 3);
+        String createdAt = tableModel.getValueAt(selectedRow, 4).toString();
+        
+        // 显示社团详情对话框
+        JDialog detailsDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "社团详情", true);
+        detailsDialog.setSize(400, 300);
+        detailsDialog.setLocationRelativeTo(this);
+        detailsDialog.setLayout(new BorderLayout(10, 10));
+        
+        JPanel detailsPanel = new JPanel(new GridBagLayout());
+        detailsPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        gbc.gridx = 0; gbc.gridy = 0;
+        detailsPanel.add(new JLabel("社团ID:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 0;
+        detailsPanel.add(new JLabel(String.valueOf(clubId)), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 1;
+        detailsPanel.add(new JLabel("社团名称:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 1;
+        detailsPanel.add(new JLabel(clubName), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 2;
+        detailsPanel.add(new JLabel("社团描述:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 2;
+        JTextArea descArea = new JTextArea(description, 3, 20);
+        descArea.setLineWrap(true);
+        descArea.setWrapStyleWord(true);
+        descArea.setEditable(false);
+        detailsPanel.add(new JScrollPane(descArea), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 3;
+        detailsPanel.add(new JLabel("社长ID:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 3;
+        detailsPanel.add(new JLabel(String.valueOf(presidentId)), gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 4;
+        detailsPanel.add(new JLabel("创建时间:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 4;
+        detailsPanel.add(new JLabel(createdAt), gbc);
+        
+        detailsDialog.add(detailsPanel, BorderLayout.CENTER);
+        
+        JButton closeButton = new JButton("关闭");
+        closeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                detailsDialog.dispose();
+            }
+        });
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(closeButton);
+        detailsDialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        detailsDialog.setVisible(true);
+    }
+    
+    /**
+     * 删除选中的社团（管理员功能）
+     */
+    private void deleteSelectedClub() {
+        int selectedRow = clubTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "请先选择一个社团", 
+                "提示", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int clubId = (int) tableModel.getValueAt(selectedRow, 0);
+        String clubName = (String) tableModel.getValueAt(selectedRow, 1);
+        
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "确定要删除社团 \"" + clubName + "\" 吗？\n此操作不可恢复！",
+            "确认删除",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                boolean success = clubService.deleteClub(clubId);
+                
+                if (success) {
+                    JOptionPane.showMessageDialog(this, 
+                        "社团 \"" + clubName + "\" 删除成功！", 
+                        "删除成功", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    loadClubData(); // 刷新列表
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "社团删除失败", 
+                        "错误", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, 
+                    "删除过程中出现错误: " + e.getMessage(), 
+                    "错误", 
+                    JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * 管理社团活动（管理员功能）
+     */
+    private void manageClubActivities() {
+        int selectedRow = clubTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "请先选择一个社团", 
+                "提示", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int clubId = (int) tableModel.getValueAt(selectedRow, 0);
+        String clubName = (String) tableModel.getValueAt(selectedRow, 1);
+        
+        // 显示社团活动管理对话框
+        JDialog activitiesDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "管理社团活动 - " + clubName, true);
+        activitiesDialog.setSize(600, 400);
+        activitiesDialog.setLocationRelativeTo(this);
+        activitiesDialog.setLayout(new BorderLayout(10, 10));
+        
+        // 创建活动面板，传入当前用户和社团ID
+        ActivityPanel activityPanel = new ActivityPanel(currentUser);
+        activitiesDialog.add(activityPanel, BorderLayout.CENTER);
+        
+        JButton closeButton = new JButton("关闭");
+        closeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                activitiesDialog.dispose();
+            }
+        });
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(closeButton);
+        activitiesDialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        activitiesDialog.setVisible(true);
     }
     
     /**

@@ -23,6 +23,12 @@ public class ActivityDAOImpl implements IActivityDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：模拟创建成功
+                System.out.println("演示模式: 模拟创建活动 - " + activity.getTitle());
+                return true;
+            }
+            
             String sql = "INSERT INTO activities (title, description, club_id, start_time, end_time, " +
                         "location, max_participants, current_participants, status, registration_deadline, " +
                         "created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -64,6 +70,58 @@ public class ActivityDAOImpl implements IActivityDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：返回模拟活动
+                System.out.println("演示模式: 模拟获取活动ID - " + id);
+                if (id == 1) {
+                    activity = new Activity();
+                    activity.setId(1);
+                    activity.setTitle("Java编程入门讲座");
+                    activity.setDescription("学习Java编程基础");
+                    activity.setClubId(1);
+                    activity.setClubName("计算机社团");
+                    activity.setStartTime(new java.sql.Timestamp(System.currentTimeMillis() + 86400000)); // 明天
+                    activity.setEndTime(new java.sql.Timestamp(System.currentTimeMillis() + 90000000)); // 明天+1小时
+                    activity.setLocation("教学楼A101");
+                    activity.setMaxParticipants(50);
+                    activity.setCurrentParticipants(25);
+                    activity.setStatus("REGISTERING");
+                    activity.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                    activity.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                } else if (id == 2) {
+                    activity = new Activity();
+                    activity.setId(2);
+                    activity.setTitle("Python数据分析实战");
+                    activity.setDescription("学习Python数据分析技巧");
+                    activity.setClubId(1);
+                    activity.setClubName("计算机社团");
+                    activity.setStartTime(new java.sql.Timestamp(System.currentTimeMillis() + 172800000)); // 后天
+                    activity.setEndTime(new java.sql.Timestamp(System.currentTimeMillis() + 176400000)); // 后天+1小时
+                    activity.setLocation("实验楼B201");
+                    activity.setMaxParticipants(30);
+                    activity.setCurrentParticipants(15);
+                    activity.setStatus("REGISTERING");
+                    activity.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                    activity.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                } else if (id == 3) {
+                    activity = new Activity();
+                    activity.setId(3);
+                    activity.setTitle("校园篮球友谊赛");
+                    activity.setDescription("校园篮球比赛");
+                    activity.setClubId(2);
+                    activity.setClubName("篮球社团");
+                    activity.setStartTime(new java.sql.Timestamp(System.currentTimeMillis() + 259200000)); // 3天后
+                    activity.setEndTime(new java.sql.Timestamp(System.currentTimeMillis() + 262800000)); // 3天后+1小时
+                    activity.setLocation("体育馆篮球场");
+                    activity.setMaxParticipants(20);
+                    activity.setCurrentParticipants(10);
+                    activity.setStatus("REGISTERING");
+                    activity.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                    activity.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                }
+                return activity;
+            }
+            
             String sql = "SELECT a.*, c.name as club_name FROM activities a " +
                         "LEFT JOIN clubs c ON a.club_id = c.id WHERE a.id = ?";
             pstmt = conn.prepareStatement(sql);
@@ -145,6 +203,60 @@ public class ActivityDAOImpl implements IActivityDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：返回模拟活动数据
+                System.out.println("演示模式: 返回模拟活动数据");
+                Activity activity1 = new Activity();
+                activity1.setId(1);
+                activity1.setTitle("Java编程入门讲座");
+                activity1.setDescription("学习Java编程基础");
+                activity1.setClubId(1);
+                activity1.setClubName("计算机社团");
+                activity1.setStartTime(new java.sql.Timestamp(System.currentTimeMillis() + 86400000)); // 明天
+                activity1.setEndTime(new java.sql.Timestamp(System.currentTimeMillis() + 90000000)); // 明天+1小时
+                activity1.setLocation("教学楼A101");
+                activity1.setMaxParticipants(50);
+                activity1.setCurrentParticipants(25);
+                activity1.setStatus("REGISTERING");
+                activity1.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                activity1.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                activityList.add(activity1);
+                
+                Activity activity2 = new Activity();
+                activity2.setId(2);
+                activity2.setTitle("Python数据分析实战");
+                activity2.setDescription("学习Python数据分析技巧");
+                activity2.setClubId(1);
+                activity2.setClubName("计算机社团");
+                activity2.setStartTime(new java.sql.Timestamp(System.currentTimeMillis() + 172800000)); // 后天
+                activity2.setEndTime(new java.sql.Timestamp(System.currentTimeMillis() + 176400000)); // 后天+1小时
+                activity2.setLocation("实验楼B201");
+                activity2.setMaxParticipants(30);
+                activity2.setCurrentParticipants(15);
+                activity2.setStatus("REGISTERING");
+                activity2.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                activity2.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                activityList.add(activity2);
+                
+                Activity activity3 = new Activity();
+                activity3.setId(3);
+                activity3.setTitle("校园篮球友谊赛");
+                activity3.setDescription("校园篮球比赛");
+                activity3.setClubId(2);
+                activity3.setClubName("篮球社团");
+                activity3.setStartTime(new java.sql.Timestamp(System.currentTimeMillis() + 259200000)); // 3天后
+                activity3.setEndTime(new java.sql.Timestamp(System.currentTimeMillis() + 262800000)); // 3天后+1小时
+                activity3.setLocation("体育馆篮球场");
+                activity3.setMaxParticipants(20);
+                activity3.setCurrentParticipants(10);
+                activity3.setStatus("REGISTERING");
+                activity3.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                activity3.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                activityList.add(activity3);
+                
+                return activityList;
+            }
+            
             stmt = conn.createStatement();
             String sql = "SELECT a.*, c.name as club_name FROM activities a " +
                         "LEFT JOIN clubs c ON a.club_id = c.id ORDER BY a.created_at DESC";
@@ -685,6 +797,13 @@ public class ActivityDAOImpl implements IActivityDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：模拟检查用户是否已报名
+                System.out.println("演示模式: 模拟检查用户报名 - 活动ID: " + activityId + ", 用户ID: " + userId);
+                // 在演示模式中，假设用户未报名任何活动
+                return false;
+            }
+            
             String sql = "SELECT COUNT(*) FROM activity_registrations WHERE activity_id = ? AND user_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, activityId);
@@ -711,6 +830,12 @@ public class ActivityDAOImpl implements IActivityDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：模拟报名成功
+                System.out.println("演示模式: 模拟报名活动 - 活动ID: " + activityId + ", 用户ID: " + userId);
+                return true;
+            }
+            
             String sql = "INSERT INTO activity_registrations (activity_id, user_id, registered_at) VALUES (?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, activityId);

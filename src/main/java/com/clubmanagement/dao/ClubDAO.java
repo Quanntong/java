@@ -25,6 +25,28 @@ public class ClubDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：返回模拟社团数据
+                System.out.println("演示模式: 返回模拟社团数据");
+                Club club1 = new Club();
+                club1.setId(1);
+                club1.setName("计算机社团");
+                club1.setDescription("学习计算机技术的社团");
+                club1.setPresidentId(1);
+                club1.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                clubList.add(club1);
+                
+                Club club2 = new Club();
+                club2.setId(2);
+                club2.setName("篮球社团");
+                club2.setDescription("热爱篮球运动的社团");
+                club2.setPresidentId(2);
+                club2.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                clubList.add(club2);
+                
+                return clubList;
+            }
+            
             stmt = conn.createStatement();
             String sql = "SELECT id, name, description, president_id, created_at " +
                         "FROM clubs ORDER BY created_at DESC";
@@ -60,6 +82,12 @@ public class ClubDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：模拟创建成功
+                System.out.println("演示模式: 模拟创建社团 - " + club.getName());
+                return true;
+            }
+            
             String sql = "INSERT INTO clubs (name, description, president_id) VALUES (?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, club.getName());
@@ -90,6 +118,27 @@ public class ClubDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：返回模拟社团
+                System.out.println("演示模式: 模拟获取社团ID - " + id);
+                if (id == 1) {
+                    club = new Club();
+                    club.setId(1);
+                    club.setName("计算机社团");
+                    club.setDescription("学习计算机技术的社团");
+                    club.setPresidentId(1);
+                    club.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                } else if (id == 2) {
+                    club = new Club();
+                    club.setId(2);
+                    club.setName("篮球社团");
+                    club.setDescription("热爱篮球运动的社团");
+                    club.setPresidentId(2);
+                    club.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                }
+                return club;
+            }
+            
             String sql = "SELECT id, name, description, president_id, created_at " +
                         "FROM clubs WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
@@ -192,6 +241,12 @@ public class ClubDAO {
         
         try {
             conn = DBUtil.getConnection();
+            if (conn == null) {
+                // 演示模式：模拟删除成功
+                System.out.println("演示模式: 模拟删除社团 - ID: " + id);
+                return true;
+            }
+            
             String sql = "DELETE FROM clubs WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
