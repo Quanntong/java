@@ -1,7 +1,9 @@
 package com.clubmanagement.service;
 
-import com.clubmanagement.dao.ClubDAO;
-import com.clubmanagement.dao.UserDAO;
+import com.clubmanagement.dao.IClubDAO;
+import com.clubmanagement.dao.IUserDAO;
+import com.clubmanagement.dao.impl.ClubDAOImpl;
+import com.clubmanagement.dao.impl.UserDAOImpl;
 import com.clubmanagement.model.Club;
 import com.clubmanagement.model.User;
 
@@ -12,12 +14,12 @@ import java.util.List;
  * 处理社团相关的业务逻辑
  */
 public class ClubService {
-    private ClubDAO clubDAO;
-    private UserDAO userDAO;
+    private IClubDAO clubDAO;
+    private IUserDAO userDAO;
     
     public ClubService() {
-        this.clubDAO = new ClubDAO();
-        this.userDAO = new UserDAO();
+        this.clubDAO = new ClubDAOImpl();
+        this.userDAO = new UserDAOImpl();
     }
     
     /**
@@ -162,7 +164,8 @@ public class ClubService {
             throw new IllegalArgumentException("社长用户不存在: ID=" + presidentId);
         }
         
-        return clubDAO.getClubsByPresidentId(presidentId);
+        // 使用getClubsByCreator方法，因为presidentId就是creatorId
+        return clubDAO.getClubsByCreator(presidentId);
     }
     
     /**
